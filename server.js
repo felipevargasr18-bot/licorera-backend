@@ -5,6 +5,9 @@ const path = require("path")
 
 const categorias = require("./routes/categorias")
 const productos = require("./routes/productos")
+const auth = require("./routes/auth")
+
+const Admin = require("./models/Admin")
 
 const app = express()
 
@@ -14,41 +17,44 @@ app.use(express.json())
 // carpeta de imágenes
 app.use("/imagenes", express.static(path.join(__dirname,"imagenes")))
 
-// SERVIR FRONTEND COMPLETO
+// SERVIR FRONTEND
 app.use(express.static(path.join(__dirname,"../frontend")))
 
-mongoose.connect("mongodb://127.0.0.1/licorera")
+// 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
+mongoose.connect(process.env.MONGO_URI)
+.then(()=> console.log("✅ Conectado a MongoDB"))
+.catch(err => console.log(err))
 
+// rutas
 app.use("/categorias", categorias)
 app.use("/productos", productos)
-
-app.listen(3000, '0.0.0.0', () => {
-  console.log("Servidor corriendo")
-})
-
-const auth = require("./routes/auth")
-
 app.use("/auth", auth)
 
-const Admin = require("./models/Admin")
-
-async function crearAdmin(){
-
-const existe = await Admin.findOne({usuario:"admin"})
-
-if(!existe){
-
-await Admin.create({
-usuario:"",
-password:""
+// 🔥 RUTA PRINCIPAL (CLAVE)
+app.get("/", (req, res) => {
+  res.send("🚀 Backend licorera funcionando")
 })
 
-console.log("✅ Admin creado")
+// 🔥 PUERTO CORRECTO PARA RENDER
+const PORT = process.env.PORT || 3000
 
-}else{
-console.log("⚡ Admin ya existe")
-}
+app.listen(PORT, () => {
+  console.log("Servidor corriendo en puerto " + PORT)
+})
 
+// crear admin
+async function crearAdmin(){
+  const existe = await Admin.findOne({usuario:"admin"})
+
+  if(!existe){
+    await Admin.create({
+      usuario:"admin",
+      password:"1234"
+    })
+    console.log("✅ Admin creado")
+  }else{
+    console.log("⚡ Admin ya existe")
+  }
 }
 
 crearAdmin()
