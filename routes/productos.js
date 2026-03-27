@@ -13,26 +13,31 @@ const cloudinary = require("../config/cloudinary")
 
 router.post("/", upload.single("imagen"), async (req, res) => {
   try {
+
     const { nombre, precio, categoria } = req.body;
 
-    let imageUrl = "";
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(
-        `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
-        {
-          folder: "licorera"
-        }
-      );
-
-      imageUrl = result.secure_url;
+    // 🔥 VALIDACIÓN IMPORTANTE
+    if (!nombre || !precio || !categoria) {
+      return res.status(400).json({ error: "Faltan datos" });
     }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Debes subir una imagen" });
+    }
+
+    // 🔥 SUBIR A CLOUDINARY
+    const result = await cloudinary.uploader.upload(
+      `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+      {
+        folder: "licorera"
+      }
+    );
 
     const nuevoProducto = new Producto({
       nombre,
       precio,
       categoria,
-      imagen: imageUrl
+      imagen: result.secure_url
     });
 
     await nuevoProducto.save();
@@ -40,7 +45,7 @@ router.post("/", upload.single("imagen"), async (req, res) => {
     res.json(nuevoProducto);
 
   } catch (error) {
-    console.log(error);
+    console.log("ERROR CREANDO PRODUCTO:", error);
     res.status(500).json({ error: "Error al crear producto" });
   }
 });
