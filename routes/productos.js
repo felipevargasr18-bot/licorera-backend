@@ -3,47 +3,47 @@ const router = express.Router()
 
 const Producto = require("../models/Producto")
 
-const multer = require("multer")
+const upload = require("../middlewares/upload")
+const cloudinary = require("../config/cloudinary")
 
-// configuración de almacenamiento
 
-const storage = multer.diskStorage({
-
-destination: function(req,file,cb){
-
-cb(null,"imagenes/")
-
-},
-
-filename: function(req,file,cb){
-
-cb(null, Date.now() + "-" + file.originalname)
-
-}
-
-})
-
-const upload = multer({storage:storage})
 
 
 // crear producto con imagen
 
-router.post("/", upload.single("imagen"), async(req,res)=>{
+router.post("/", upload.single("imagen"), async (req, res) => {
+  try {
+    const { nombre, precio, categoria } = req.body;
 
-const nuevoProducto = new Producto({
+    let imageUrl = "";
 
-nombre:req.body.nombre,
-precio:req.body.precio,
-categoria:req.body.categoria,
-imagen: req.file ? req.file.filename : ""
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(
+        `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+        {
+          folder: "licorera"
+        }
+      );
 
-})
+      imageUrl = result.secure_url;
+    }
 
-await nuevoProducto.save()
+    const nuevoProducto = new Producto({
+      nombre,
+      precio,
+      categoria,
+      imagen: imageUrl
+    });
 
-res.json(nuevoProducto)
+    await nuevoProducto.save();
 
-})
+    res.json(nuevoProducto);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al crear producto" });
+  }
+});
 
 
 // obtener productos
