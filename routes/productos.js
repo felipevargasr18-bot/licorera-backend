@@ -62,15 +62,34 @@ await Producto.findByIdAndDelete(req.params.id)
 res.json({mensaje:"Producto eliminado"})
 
 })
-router.put("/:id", async (req, res) => {
-  const { nombre, precio } = req.body;
+router.put("/:id", upload.single("imagen"), async (req, res) => {
+  try {
+    const { nombre, precio, categoria } = req.body;
 
-  await Producto.findByIdAndUpdate(req.params.id, {
-    nombre,
-    precio
-  });
+    let updateData = {
+      nombre,
+      precio,
+      categoria
+    };
 
-  res.json({ mensaje: "Producto actualizado" });
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(
+        `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+        {
+          folder: "licorera"
+        }
+      );
+
+      updateData.imagen = result.secure_url;
+    }
+
+    await Producto.findByIdAndUpdate(req.params.id, updateData);
+
+    res.json({ mensaje: "Producto actualizado" });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al actualizar producto" });
+  }
 });
-
 module.exports = router
