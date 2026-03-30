@@ -1,67 +1,69 @@
-require ("dotenv").config();
-const express = require("express")
-const mongoose = require("mongoose")
-const cors = require("cors")
-const path = require("path")
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const path = require("path");
 
-const categorias = require("./routes/categorias")
-const productos = require("./routes/productos")
-const auth = require("./routes/auth")
+const categorias = require("./routes/categorias");
+const productos = require("./routes/productos");
+const auth = require("./routes/auth");
 
-const Admin = require("./models/Admin")
+const Admin = require("./models/Admin");
 
-const app = express()
+const app = express();
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 // carpeta de imágenes
-app.use("/imagenes", express.static(path.join(__dirname,"imagenes")))
+app.use("/imagenes", express.static(path.join(__dirname, "imagenes")));
 
 // SERVIR FRONTEND
-app.use(express.static(path.join(__dirname,"../frontend")))
+app.use(express.static(path.join(__dirname, "../frontend")));
 
-// 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
-
-const mongoose = require("mongoose");
-
+// 🔥 CONEXIÓN A MONGODB
 async function conectarDB() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Conectado a MongoDB");
   } catch (error) {
-    console.error("❌ Error conectando a MongoDB:", error);
+    console.error("❌ Error MongoDB:", error);
     process.exit(1);
   }
 }
 
 conectarDB();
 
-// 🔥 RUTA PRINCIPAL (CLAVE)
-app.get("/", (req, res) => {
-  res.send("🚀 Backend licorera funcionando")
-})
+// 🔥 RUTAS
+app.use("/api/categorias", categorias);
+app.use("/api/productos", productos);
+app.use("/api/auth", auth);
 
-// 🔥 PUERTO CORRECTO PARA RENDER
-const PORT = process.env.PORT || 3000
+// 🔥 RUTA PRINCIPAL
+app.get("/", (req, res) => {
+  res.send("🚀 Backend licorera funcionando");
+});
+
+// 🔥 PUERTO
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT)
-})
+  console.log("Servidor corriendo en puerto " + PORT);
+});
 
 // crear admin
-async function crearAdmin(){
-  const existe = await Admin.findOne({usuario:"admin"})
+async function crearAdmin() {
+  const existe = await Admin.findOne({ usuario: "admin" });
 
-  if(!existe){
+  if (!existe) {
     await Admin.create({
-      usuario:"admin",
-      password:"1234"
-    })
-    console.log("✅ Admin creado")
-  }else{
-    console.log("⚡ Admin ya existe")
+      usuario: "admin",
+      password: "1234",
+    });
+    console.log("✅ Admin creado");
+  } else {
+    console.log("⚡ Admin ya existe");
   }
 }
 
-crearAdmin()
+crearAdmin();
