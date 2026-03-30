@@ -22,15 +22,20 @@ app.use("/imagenes", express.static(path.join(__dirname,"imagenes")))
 app.use(express.static(path.join(__dirname,"../frontend")))
 
 // 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
-mongoose.connect(process.env.MONGO_URI)
-console.log("MONGO URI:", process.env.MONGO_URI)
-.then(()=> console.log("✅ Conectado a MongoDB"))
-.catch(err => console.log(err))
 
-// rutas
-app.use("/categorias", categorias)
-app.use("/productos", productos)
-app.use("/auth", auth)
+const mongoose = require("mongoose");
+
+async function conectarDB() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ Conectado a MongoDB");
+  } catch (error) {
+    console.error("❌ Error conectando a MongoDB:", error);
+    process.exit(1);
+  }
+}
+
+conectarDB();
 
 // 🔥 RUTA PRINCIPAL (CLAVE)
 app.get("/", (req, res) => {
