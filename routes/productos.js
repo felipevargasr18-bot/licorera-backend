@@ -1,29 +1,24 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-const Producto = require("../models/Producto")
+const Producto = require("../models/Producto");
+const upload = require("../middlewares/upload");
+const cloudinary = require("../config/cloudinary");
 
-const upload = require("../middlewares/upload")
-const cloudinary = require("../config/cloudinary")
-
-
-
-
-// crear producto con imagen
-
+// ✅ CREAR PRODUCTO
 router.post("/", upload.single("imagen"), async (req, res) => {
   try {
-
     const { nombre, precio, categoria } = req.body;
 
-    // 🔥 VALIDACIÓN IMPORTANTE
+    // VALIDACIÓN
     if (!nombre || !precio || !categoria) {
       return res.status(400).json({ error: "Faltan datos" });
     }
 
-   if (!req.file) {
-  return res.status(400).json({ error: "NO LLEGA IMAGEN" });
-}
+    if (!req.file) {
+      return res.status(400).json({ error: "NO LLEGA IMAGEN" });
+    }
+
     // 🔥 SUBIR A CLOUDINARY
     const result = await cloudinary.uploader.upload(
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
@@ -32,6 +27,7 @@ router.post("/", upload.single("imagen"), async (req, res) => {
       }
     );
 
+    // GUARDAR EN MONGO
     const nuevoProducto = new Producto({
       nombre,
       precio,
@@ -41,31 +37,35 @@ router.post("/", upload.single("imagen"), async (req, res) => {
 
     await nuevoProducto.save();
 
-    res.json(nuevoProducto);
+    res.json({ mensaje: "Producto creado", producto: nuevoProducto });
 
   } catch (error) {
-  console.log("🔥 ERROR REAL:", error);
-  res.status(500).json({ error: error.message });
-}
+    console.log("❌ ERROR CREANDO PRODUCTO:", error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
+// ✅ OBTENER PRODUCTOS
+router.get("/", async (req, res) => {
+  try {
+    const productos = await Producto.find();
+    res.json(productos);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener productos" });
+  }
+});
 
-// obtener productos
+// ✅ ELIMINAR PRODUCTO
+router.delete("/:id", async (req, res) => {
+  try {
+    await Producto.findByIdAndDelete(req.params.id);
+    res.json({ mensaje: "Producto eliminado" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar producto" });
+  }
+});
 
-router.get("/", async(req,res)=>{
-
-const productos = await Producto.find()
-
-res.json(productos)
-
-})
-router.delete("/:id", async (req,res)=>{
-
-await Producto.findByIdAndDelete(req.params.id)
-
-res.json({mensaje:"Producto eliminado"})
-
-})
+// ✅ ACTUALIZAR PRODUCTO
 router.put("/:id", upload.single("imagen"), async (req, res) => {
   try {
     const { nombre, precio, categoria } = req.body;
@@ -92,8 +92,9 @@ router.put("/:id", upload.single("imagen"), async (req, res) => {
     res.json({ mensaje: "Producto actualizado" });
 
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Error al actualizar producto" });
+    console.log("❌ ERROR ACTUALIZANDO:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
-module.exports = router
+
+module.exports = router;
