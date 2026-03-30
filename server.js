@@ -1,27 +1,28 @@
-require("dotenv").config();
-const express = require("express");
+require ("dotenv").config();
+const express = require("express")
 const mongoose = require("mongoose");
-const cors = require("cors");
-const path = require("path");
+const cors = require("cors")
+const path = require("path")
 
-const categorias = require("./routes/categorias");
-const productos = require("./routes/productos");
-const auth = require("./routes/auth");
+const categorias = require("./routes/categorias")
+const productos = require("./routes/productos")
+const auth = require("./routes/auth")
 
-const Admin = require("./models/Admin");
+const Admin = require("./models/Admin")
 
-const app = express();
+const app = express()
 
-app.use(cors());
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
 
 // carpeta de imágenes
-app.use("/imagenes", express.static(path.join(__dirname, "imagenes")));
+app.use("/imagenes", express.static(path.join(__dirname,"imagenes")))
 
 // SERVIR FRONTEND
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname,"../frontend")))
 
-// 🔥 CONEXIÓN A MONGODB
+// 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
+
 async function conectarDB() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -34,36 +35,31 @@ async function conectarDB() {
 
 conectarDB();
 
-// 🔥 RUTAS
-app.use("/api/categorias", categorias);
-app.use("/api/productos", productos);
-app.use("/api/auth", auth);
-
-// 🔥 RUTA PRINCIPAL
+// 🔥 RUTA PRINCIPAL (CLAVE)
 app.get("/", (req, res) => {
-  res.send("🚀 Backend licorera funcionando");
-});
+  res.send("🚀 Backend licorera funcionando")
+})
 
-// 🔥 PUERTO
-const PORT = process.env.PORT || 3000;
+// 🔥 PUERTO CORRECTO PARA RENDER
+const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
-});
+  console.log("Servidor corriendo en puerto " + PORT)
+})
 
 // crear admin
-async function crearAdmin() {
-  const existe = await Admin.findOne({ usuario: "admin" });
+async function crearAdmin(){
+  const existe = await Admin.findOne({usuario:"admin"})
 
-  if (!existe) {
+  if(!existe){
     await Admin.create({
-      usuario: "admin",
-      password: "1234",
-    });
-    console.log("✅ Admin creado");
-  } else {
-    console.log("⚡ Admin ya existe");
+      usuario:"admin",
+      password:"1234"
+    })
+    console.log("✅ Admin creado")
+  }else{
+    console.log("⚡ Admin ya existe")
   }
 }
 
-crearAdmin();
+crearAdmin()
