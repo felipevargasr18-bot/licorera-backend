@@ -1,6 +1,6 @@
 require ("dotenv").config();
 const express = require("express")
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 const cors = require("cors")
 const path = require("path")
 
@@ -22,18 +22,14 @@ app.use("/imagenes", express.static(path.join(__dirname,"imagenes")))
 app.use(express.static(path.join(__dirname,"../frontend")))
 
 // 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
+mongoose.connect(process.env.MONGO_URI)
+.then(()=> console.log("✅ Conectado a MongoDB"))
+.catch(err => console.log(err))
 
-async function conectarDB() {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ Conectado a MongoDB");
-  } catch (error) {
-    console.error("❌ Error MongoDB:", error);
-    process.exit(1);
-  }
-}
-
-conectarDB();
+// rutas
+app.use("/categorias", categorias)
+app.use("/productos", productos)
+app.use("/auth", auth)
 
 // 🔥 RUTA PRINCIPAL (CLAVE)
 app.get("/", (req, res) => {
