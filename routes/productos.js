@@ -21,10 +21,9 @@ router.post("/", upload.single("imagen"), async (req, res) => {
       return res.status(400).json({ error: "Faltan datos" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Debes subir una imagen" });
-    }
-
+   if (!req.file) {
+  return res.status(400).json({ error: "NO LLEGA IMAGEN" });
+}
     // 🔥 SUBIR A CLOUDINARY
     const result = await cloudinary.uploader.upload(
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
