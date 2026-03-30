@@ -44,9 +44,9 @@ router.post("/", upload.single("imagen"), async (req, res) => {
     res.json(nuevoProducto);
 
   } catch (error) {
-    console.log("ERROR CREANDO PRODUCTO:", error);
-    res.status(500).json({ error: "Error al crear producto" });
-  }
+  console.log("🔥 ERROR REAL:", error);
+  res.status(500).json({ error: error.message });
+}
 });
 
 

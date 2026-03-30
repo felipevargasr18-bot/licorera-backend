@@ -23,6 +23,7 @@ app.use(express.static(path.join(__dirname,"../frontend")))
 
 // 🔥 CONEXIÓN A MONGODB (IMPORTANTE)
 mongoose.connect(process.env.MONGO_URI)
+console.log("MONGO URI:", process.env.MONGO_URI)
 .then(()=> console.log("✅ Conectado a MongoDB"))
 .catch(err => console.log(err))
 
